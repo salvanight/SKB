@@ -20,12 +20,12 @@ def getContent(screenshot: GrayImage) -> Union[GrayImage, None]:
 
 # PERF: [0.8151709999999994, 1.1999999999900979e-05]
 # TODO: add unit tests
-@njit(cache=True, fastmath=True, boundscheck=False)
+@njit(cache=True, fastmath=True, boundscheck=False, parallel=True)
 def getCreaturesNamesImages(content: GrayImage, filledSlotsCount: int) -> GrayImage:
     creaturesNamesImages = np.zeros((filledSlotsCount, 115), dtype=np.uint8)
     for i in range(filledSlotsCount):
         y = 11 + (i * 22)
-        creatureNameImage = content[y:y + 1, 23:138][0]
+        creatureNameImage = content[y, 23:138]
         for j in range(creatureNameImage.shape[0]):
             if creatureNameImage[j] == 192 or creatureNameImage[j] == 247:
                 creaturesNamesImages[i, j] = 192

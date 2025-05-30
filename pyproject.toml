@@ -38,6 +38,7 @@ taskipy = "^1.10.3"
 
 [tool.taskipy.tasks]
 test = "python -m pytest ."
+build_rust_utils = "python scripts/build_rust.py"
 
 [build-system]
 requires = ["poetry-core"]
