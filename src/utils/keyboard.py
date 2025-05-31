@@ -1,18 +1,20 @@
 import time # Added for sleeps in hotkey, press, write
+import os # Added for environment variable
 from .ino_rs import ArduinoComm, ArduinoCommError # New import
 
-# Initialize Arduino communication
-# TODO: Port name should ideally be configurable, not hardcoded.
-# For now, using the port from the original ino.py.
-# The actual library path for libarduino_comm.so/dll will be resolved by ArduinoComm itself.
+# Default COM port
+DEFAULT_ARDUINO_COM_PORT = "COM33"
+# Get COM port from environment variable, or use default
+arduino_com_port = os.environ.get("ARDUINO_COM_PORT", DEFAULT_ARDUINO_COM_PORT)
+
 try:
-    arduino_comm = ArduinoComm("COM33") 
+    arduino_comm = ArduinoComm(arduino_com_port)
+    if arduino_com_port == DEFAULT_ARDUINO_COM_PORT and "ARDUINO_COM_PORT" not in os.environ:
+        print(f"Warning: Using default Arduino COM port '{DEFAULT_ARDUINO_COM_PORT}'. Set ARDUINO_COM_PORT environment variable to override.")
+    print(f"Attempting to use Arduino on COM port: {arduino_com_port} for keyboard")
 except ArduinoCommError as e:
-    print(f"Failed to initialize Arduino communication for keyboard: {e}")
-    # Fallback or dummy object if critical, or let it raise if arduino is essential
-    # For now, if it fails, subsequent calls will fail.
-    # A more robust app might have a dummy_arduino_comm that logs or no-ops.
-    arduino_comm = None # Or a dummy object
+    print(f"Failed to initialize Arduino communication on port {arduino_com_port} for keyboard: {e}")
+    arduino_comm = None
 
 def getAsciiFromKey(key):
     if not key:
