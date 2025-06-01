@@ -2,6 +2,11 @@ import pyautogui
 from time import sleep, time
 import traceback
 import sys
+import copy
+import random
+from src.ai.observation import extract_observation
+from src.ai.actions import Action, execute_action
+from src.ai.reward import calculate_reward
 from src.gameplay.cavebot import resolveCavebotTasks, shouldAskForCavebotTasks
 from src.gameplay.combo import comboSpells
 from src.gameplay.core.middlewares.battleList import setBattleListMiddleware
@@ -40,22 +45,24 @@ class LegacyGameLoopThread:
                     sleep(1)
                     continue
                 startTime = time()
-                self.context.context = self.handleGameData(
-                    self.context.context)
-                self.context.context = self.handleGameplayTasks(
-                    self.context.context)
-                self.context.context = self.context.context['py_tasksOrchestrator'].do(
-                    self.context.context)
-                self.context.context['py_radar']['lastCoordinateVisited'] = self.context.context['py_radar']['coordinate']
-                healingByPotions(self.context.context)
-                healingByMana(self.context.context)
-                healingBySpells(self.context.context)
-                comboSpells(self.context.context)
-                swapAmulet(self.context.context)
-                swapRing(self.context.context)
-                clearPoison(self.context.context)
-                autoHur(self.context.context)
-                eatFood(self.context.context)
+                self._run_perception_step()
+
+                # Original scripted logic (currently commented out for AI control)
+                # self.context.context = self.handleGameplayTasks(
+                #     self.context.context)
+                # self.context.context = self.context.context['py_tasksOrchestrator'].do(
+                #     self.context.context)
+                # self.context.context['py_radar']['lastCoordinateVisited'] = self.context.context['py_radar']['coordinate']
+                # healingByPotions(self.context.context)
+                # healingByMana(self.context.context)
+                # healingBySpells(self.context.context)
+                # comboSpells(self.context.context)
+                # swapAmulet(self.context.context)
+                # swapRing(self.context.context)
+                # clearPoison(self.context.context)
+                # autoHur(self.context.context)
+                # eatFood(self.context.context)
+
                 endTime = time()
                 diff = endTime - startTime
                 sleep(max(0.045 - diff, 0))
@@ -65,25 +72,42 @@ class LegacyGameLoopThread:
                 print(f"An exception occurred: {e}")
                 print(traceback.format_exc())
 
-    def handleGameData(self, context):
-        if context['py_pause']:
-            return context
-        context = setScreenshotMiddleware(context)
-        context = setRadarMiddleware(context)
-        context = setChatTabsMiddleware(context)
-        context = setBattleListMiddleware(context)
-        context = setGameWindowMiddleware(context)
-        context = setDirectionMiddleware(context)
-        context = setGameWindowCreaturesMiddleware(context)
-        if context['py_cave']['enabled'] and context['py_cave']['runToCreatures'] == True:
-            context = setHandleLootMiddleware(context)          
+    def _run_perception_step(self):
+        """
+        Runs a single step of game perception, updating the context.
+        This includes screenshot capture, radar, battle list, game window,
+        player status, and other middleware processing.
+        """
+        # Renamed context to self.context.context to match access patterns elsewhere in the class
+        current_context = self.context.context
+        if current_context['py_pause']:
+            return
+        current_context = setScreenshotMiddleware(current_context)
+        current_context = setRadarMiddleware(current_context)
+        current_context = setChatTabsMiddleware(current_context)
+        current_context = setBattleListMiddleware(current_context)
+        current_context = setGameWindowMiddleware(current_context)
+        current_context = setDirectionMiddleware(current_context)
+        current_context = setGameWindowCreaturesMiddleware(current_context)
+        if current_context['py_cave']['enabled'] and current_context['py_cave']['runToCreatures'] == True:
+            current_context = setHandleLootMiddleware(current_context)
         else:
-            context['py_cave']['targetCreature'] = getTargetCreature(context['gameWindow']['monsters'])
-        context = setWaypointIndexMiddleware(context)
-        context = setMapPlayerStatusMiddleware(context)
-        context = setMapStatsBarMiddleware(context)
-        context = setCleanUpTasksMiddleware(context)
-        return context
+            current_context['py_cave']['targetCreature'] = getTargetCreature(current_context['gameWindow']['monsters'])
+        current_context = setWaypointIndexMiddleware(current_context)
+        current_context = setMapPlayerStatusMiddleware(current_context)
+        current_context = setMapStatsBarMiddleware(current_context)
+        current_context = setCleanUpTasksMiddleware(current_context)
+        self.context.context = current_context # Ensure the main context reference is updated
+
+    def handleGameData(self, context_param): # Parameter name changed to avoid confusion with self.context.context
+        # This method now calls the new perception step method.
+        # The passed 'context_param' is effectively ignored if self.context.context is the true source of state.
+        # However, to maintain the original signature and behavior if it were called externally with a dict:
+        if context_param['py_pause']:
+             return context_param
+        self.context.context = context_param # Make sure we're operating on the passed context if this is intended
+        self._run_perception_step()
+        return self.context.context # Return the context as original handleGameData did
 
     def handleGameplayTasks(self, context):
         # TODO: func to check if coord is none
