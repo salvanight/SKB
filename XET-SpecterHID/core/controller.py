@@ -145,7 +145,7 @@ class CoreController:
                 loop_end_time = time.time()
                 processing_time_ms = (loop_end_time - loop_start_time) * 1000
                 wait_time_s = max(0, (self.capture_delay_ms - processing_time_ms) / 1000)
-                
+
                 if wait_time_s > 0:
                     logger.debug(f"Processing took {processing_time_ms:.2f}ms. Waiting for {wait_time_s:.2f}s.")
                     time.sleep(wait_time_s)
@@ -173,7 +173,7 @@ class CoreController:
 
 if __name__ == "__main__":
     logger.info("Starting CoreController in standalone mode...")
-    
+
     # Construct the path to settings.toml relative to this script
     # core/controller.py -> config/settings.toml
     # SCRIPT_DIR is XET-SpecterHID/core

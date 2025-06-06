@@ -44,10 +44,10 @@ class ScreenParser:
         Extracts the Region of Interest from the frame.
         """
         h, w = frame_cv.shape[:2]
-        
+
         roi_x_abs = self.roi_x if self.roi_x >= 0 else 0
         roi_y_abs = self.roi_y if self.roi_y >= 0 else 0
-        
+
         roi_w_abs = self.roi_width if self.roi_width > 0 else w - roi_x_abs
         # Ensure roi_w_abs does not exceed frame boundaries
         roi_w_abs = min(roi_w_abs, w - roi_x_abs)
@@ -154,7 +154,7 @@ class ScreenParser:
 if __name__ == "__main__":
     # Create a dummy green and red image for testing
     width, height = 640, 480
-    
+
     # Test Case 1: Image with significant green
     green_image_np = np.zeros((height, width, 3), dtype=np.uint8)
     green_image_np[100:200, 100:200] = [0, 255, 0]  # BGR for green (OpenCV style)
@@ -189,7 +189,7 @@ if __name__ == "__main__":
     logger.info(f"Analysis result for red image: {result_red}")
     assert result_red["status"] == "target_color_not_detected"
     assert result_red["pixel_count"] < parser.detection_threshold_pixels
-    
+
     logger.info("--- Testing with RGBA Green Image ---")
     result_rgba_green = parser.analyze_frame(pil_rgba_image)
     logger.info(f"Analysis result for RGBA green image: {result_rgba_green}")
@@ -204,7 +204,7 @@ if __name__ == "__main__":
     logger.info(f"Analysis result for green image with ROI missing green: {result_green_roi_miss}")
     assert result_green_roi_miss["status"] == "target_color_not_detected"
     assert result_green_roi_miss["pixel_count"] == 0
-    
+
     logger.info("--- Testing with ROI that includes some green ---")
     # ROI from (0,0) to (150,150) should catch some green from both areas
     parser_roi_hit = ScreenParser(roi_x=0, roi_y=0, roi_width=150, roi_height=150, detection_threshold_pixels=100) # Lower threshold for this test

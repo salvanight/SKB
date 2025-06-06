@@ -94,7 +94,7 @@ class OBSConnector:
                 # For generic screen capture, 'monitor_capture' (often called 'Display Capture') is common.
                 # Or a specific source like 'game_capture' or 'window_capture'.
                 # This example prioritizes 'monitor_capture' if no specific filter is given.
-                
+
                 # We need to get input settings to check the actual source type for some inputs
                 # For now, we rely on the inputKind matching or a user-provided name.
                 if source_name_filter and item['inputName'] == source_name_filter:
@@ -103,7 +103,7 @@ class OBSConnector:
                 elif not source_name_filter and item['inputKind'] in [source_type, "display_capture", "monitor_capture", "screen_capture_input"]: # Common names for display/monitor capture
                     logger.info(f"Found source of type '{item['inputKind']}': {item['inputName']}")
                     return item['inputName']
-            
+
             if source_name_filter:
                 logger.warning(f"Specified source '{source_name_filter}' not found.")
             else:
@@ -142,13 +142,13 @@ class OBSConnector:
                     target_source_name = self.get_source_by_type("window_capture") # Fallback to window
                 if not target_source_name:
                      target_source_name = self.get_source_by_type("game_capture") # Fallback to game
-                
+
                 if target_source_name:
                     self._source_name = target_source_name # Cache for next time
                 else:
                     logger.error("Could not automatically determine a source to capture. Please specify a source_name.")
                     return None
-        
+
         logger.info(f"Attempting to capture frame from source: {target_source_name}")
 
         try:
@@ -163,19 +163,19 @@ class OBSConnector:
                 params['imageWidth'] = output_width
             if output_height:
                 params['imageHeight'] = output_height
-            
+
             response = self.ws.call(requests.GetSourceScreenshot(**params))
-            
+
             if response.ok():
                 image_data_b64 = response.getImageData() # Renamed from imageData
                 if not image_data_b64:
                     logger.error("Received empty image data from OBS.")
                     return None
-                
+
                 # Remove the data URI scheme prefix if present (e.g., "data:image/png;base64,")
                 if ',' in image_data_b64:
                     image_data_b64 = image_data_b64.split(',', 1)[1]
-                
+
                 img_bytes = base64.b64decode(image_data_b64)
                 image = Image.open(BytesIO(img_bytes))
                 logger.info(f"Frame captured successfully from '{target_source_name}'. Format: {image.format}, Size: {image.size}")
@@ -230,22 +230,22 @@ if __name__ == "__main__":
             password = obs_settings.get('password') # Can be None
 
             logger.info(f"Attempting to connect to OBS at {host}:{port}")
-            
+
             connector = OBSConnector(host=host, port=port, password=password)
-            
+
             if connector.connect():
                 logger.info("Connection successful. Attempting to capture a frame...")
-                
+
                 # Attempt to capture (auto-detect source, or specify one)
                 # You might need to change "Display Capture" to the actual name of your source in OBS
-                # common_source_names = ["Display Capture", "Window Capture", "Game Capture", "Screen Capture"] 
+                # common_source_names = ["Display Capture", "Window Capture", "Game Capture", "Screen Capture"]
                 # frame = None
                 # for src_name in common_source_names:
                 #     logger.info(f"Trying to capture from source: {src_name}")
                 #     frame = connector.capture_frame(source_name=src_name)
                 #     if frame:
                 #         break
-                
+
                 # If specific source names failed, try auto-detection
                 # if not frame:
                 logger.info("Trying to capture frame with auto-detection...")
@@ -260,7 +260,7 @@ if __name__ == "__main__":
                         logger.error(f"Error saving captured frame: {e}")
                 else:
                     logger.warning("Failed to capture frame. Ensure OBS is running, a source is available (e.g., 'Display Capture'), and not hidden.")
-                
+
                 connector.disconnect()
             else:
                 logger.error("Failed to connect to OBS. Please check OBS settings, ensure WebSocket server is enabled, and credentials in settings.toml are correct.")

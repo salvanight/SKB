@@ -23,7 +23,7 @@ class InputEmulator:
             raise ValueError("Delay values cannot be negative.")
         if min_delay_ms > max_delay_ms:
             raise ValueError("min_delay_ms cannot be greater than max_delay_ms.")
-            
+
         self.min_delay_ms = min_delay_ms
         self.max_delay_ms = max_delay_ms
         logger.info(f"InputEmulator initialized with delays: min={min_delay_ms}ms, max={max_delay_ms}ms.")
@@ -52,7 +52,7 @@ class InputEmulator:
         """
         if self.min_delay_ms == self.max_delay_ms == 0: # No delay if both are zero
             return 0
-            
+
         delay_ms = random.uniform(self.min_delay_ms, self.max_delay_ms)
         delay_s = delay_ms / 1000.0
         logger.debug(f"Applying delay of {delay_ms:.2f}ms.")
@@ -72,9 +72,9 @@ class InputEmulator:
             return
 
         key_to_press = self.action_to_key_map[action_command]
-        
+
         applied_delay_ms = self._apply_delay()
-        
+
         try:
             pyautogui.press(key_to_press)
             logger.info(f"Executed action: '{action_command}' (pressed key: '{key_to_press}') after {applied_delay_ms:.2f}ms delay.")
@@ -91,7 +91,7 @@ class InputEmulator:
 if __name__ == "__main__":
     # Note: PyAutoGUI can affect your computer. Be ready to interrupt if necessary
     # (e.g., by moving the mouse to a corner quickly if pyautogui.FAILSAFE is True, default).
-    
+
     # Test with default delays
     emulator = InputEmulator() # Default: 50-150ms
 
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     logger.info("Simulating 'press_space'...")
     emulator.execute_action("press_space")
     logger.info("Spacebar should have been pressed.")
-    
+
     time.sleep(1) # Pause between actions for clarity
 
     logger.info("Simulating 'press_enter'...")
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     time.sleep(3)
     zero_delay_emulator.execute_action("press_a")
     logger.info("'a' key should have been pressed instantly.")
-    
+
     logger.info("--- Testing custom delays (e.g., longer delays) ---")
     long_delay_emulator = InputEmulator(min_delay_ms=1000, max_delay_ms=2000) # 1-2 seconds
     logger.info("Simulating 'press_w' with 1-2 second delay (focus a text field!)...")

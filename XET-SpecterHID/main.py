@@ -22,7 +22,7 @@ except ModuleNotFoundError:
     current_dir = os.path.dirname(os.path.abspath(__file__))
     if current_dir not in sys.path:
         sys.path.insert(0, current_dir) # Add current_dir (XET-SpecterHID) to path
-    
+
     # Try importing again after potentially modifying path
     from core.controller import CoreController
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     try:
         logger.info(f"Loading configuration from: {config_file_path}")
         controller_instance = CoreController(config_path=config_file_path)
-        
+
         logger.info("CoreController initialized. Starting the main loop...")
         controller_instance.run()
 
